@@ -1,0 +1,125 @@
++-
+| Introduction
++---------------+
+
+FlashShitD is a socket policy file server written in C.
+This code is a really simple implementation of a socket server with concurrency.
+
+I don't like to write README files, but here, there is a list of URLs about 
+why you should/could use an server:
+
+http://www.adobe.com/devnet/flashplayer/articles/fplayer9_security_04.html
+http://www.adobe.com/devnet/flashplayer/articles/flash_player9_security_update.html
+
+I'm using this server in production for a flex chat based on XMPP (ejabberd)
+and I can say that this app is really stable (or... it is stable enough for
+what I do)
+
++-
+| License
++---------+
+
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
++-
+| Alternatives
++--------------+
+
+This URL contains some app written in python and in perl:
+
+http://www.adobe.com/devnet/flashplayer/articles/socket_policy_files.html
+
+but this code is not considered to be production quality and has not been
+tested for secure environments. 
+
+Of course, another alternative is:
+
+  # while :; do cat policy_file.xml | nc -l 843; done
+
++-
+| Usage
++-------+
+
+  $ ./flashShitD --help
+  Usage:
+    flashShitD [OPTION...] - flashShitD daemon
+  
+  Help Options:
+    -h, --help              Show help options
+  
+  Application Options:
+    -f, --policyfile        Policy File
+    -i, --interface         Binding interface (default: any)
+    -p, --port              Binding port (default: 843)
+    -t, --limit-timeout     Limit of seconds per client (default: 10)
+    -d, --debug             Be debug
+    -v, --verbose           Be verbose
+    -P, --pidfile           Save the pid into a file
+    -F, --foreground        Undemonize
+    -u, --username          Be this user
+    -g, --groupname         Be this group
+  
+Example:
+
+  # ./flashShitD -f /etc/flashPolicy.xml -P /tmp/flashShit.pid -u baku -g baku
+
++-
+| Init script
++-------------+
+
+I wrote a init script but if you want to use, you must update some variable inside it.
+Edit flashShitD.init and change these variables:
+
+  FLASHSHITD=${exec_prefix}/bin/flashShitD
+  FLASHSHITCONF=${prefix}/etc/flashShitD.policy
+  FLASHSHITPORT=843
+  FLASHSHITDUSER=baku
+  FLASHSHITPID=/var/run/flashShit.pid
+
++-
+| Dependences
++-------------+
+
+GLib >= 2.16.x - http://www.gtk.org
+
++-
+| Internals
++-----------+
+
+Any client has 10 (-t option) seconds to write the policy request '<policy-file-request />'
+
++-
+| Debug
++-------+
+
+Note: Do not use -d/--debug option!!!
+With this feature, flashShitD exits if it receive a "quit" message:
+
+  # ./flashShitD -f /tmp/a.php -P /tmp/flashShit.pid -u baku -g staff -F -d &>/dev/null &
+  [1] 54056
+
+  # ps aux | grep 54056
+  baku     54056   0.0  0.0  2436876   1948 s001  S     2:13pm   0:00.01 ./flashShitD -f /tmp/a.php -P /tmp/flashShit.pid -u baku -g staff -F -d
+
+  # echo quit | nc localhost 843
+  [1]+  Done        ./flashShitD -f /tmp/a.php -P /tmp/flashShit.pid -u baku -g staff -F -d >&/dev/null
+
++-
+| Author
++--------+
+
+Andrea Marchesini
+http://www.autistici.org/bakunin/

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+FLASHSHITD=@bindir@/flashShitD
+FLASHSHITCONF=@sysconfdir@/flashShitD.policy
+FLASHSHITPORT=843
+FLASHSHITDUSER=baku
+FLASHSHITPID=/var/run/flashShit.pid
+
+test -f $FLASHSHITD || exit 0
+
+start()
+{
+    if [ "$FLASHSHITDUSER" != "" ]; then
+        $FLASHSHITD -p $FLASHSHITPORT -f $FLASHSHITCONF -u "$FLASHSHITDUSER" -P "$FLASHSHITPID" &>/dev/null
+    else
+        $FLASHSHITD -p $FLASHSHITPORT -f $FLASHSHITCONF -P "$FLASHSHITPID" &>/dev/null
+    fi
+}
+
+stop()
+{
+    if [ -f "$FLASHSHITPID" ]; then
+      kill $(cat "$FLASHSHITPID")
+    fi
+}
+
+case "$1" in
+    start)
+    echo -n "Starting flashpolicyd: $NAME"
+    start
+    ;;
+    stop)
+    echo -n "Stopping flashpolicyd: $NAME"
+    stop
+    ;;
+    restart|force-reload)
+    echo -n "Restarting flashpolicyd: $NAME"
+    stop
+    sleep 3
+    start
+    ;;
+    *)
+    echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+if [ $? -eq 0 ]; then
+    echo .
+else
+    echo " failed."
+fi
+
+exit 0
